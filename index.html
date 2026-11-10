@@ -230,7 +230,6 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
 .closing .made{font-size:12px;color:#A79F8D;margin-top:44px;font-style:italic}
 
 /* ============ ambient layers ============ */
-#petals{position:fixed;inset:0;pointer-events:none;z-index:40}
 #birds{position:fixed;inset:0;pointer-events:none;z-index:41;overflow:hidden}
 .bird{position:absolute;width:30px;color:rgba(46,43,38,.5);top:20%;left:-6%;}
 .bird svg{width:100%;animation:flap .5s ease-in-out infinite alternate}
@@ -477,7 +476,6 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
 </div>
 
 <!-- ambient layers -->
-<canvas id="petals"></canvas>
 <div id="birds"></div>
 
 <!-- shared svg defs -->
@@ -576,37 +574,11 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
     setTimeout(function(){
       layer.classList.add("reveal");
       document.body.classList.remove("locked");
-      startPetals(); startBirds();
+      startBirds();
     }, 1900);
     setTimeout(function(){ layer.style.display = "none"; }, 3000);
   });
 
-  /* ── petals ── */
-  function startPetals(){
-    if (reduced) return;
-    var cv = document.getElementById("petals"), cx = cv.getContext("2d");
-    var P = [], COLORS = ["rgba(206,141,108,.38)","rgba(205,180,131,.36)","rgba(133,134,88,.3)"];
-    function size(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
-    size(); addEventListener("resize", size);
-    for (var i = 0; i < 13; i++) P.push(spawn(true));
-    function spawn(any){ return {
-      x: Math.random()*innerWidth, y: any ? Math.random()*innerHeight : -20,
-      r: 4 + Math.random()*5, vy: .35 + Math.random()*.6, ph: Math.random()*6.28,
-      sway: 18 + Math.random()*26, rot: Math.random()*6.28, vr: (Math.random()-.5)*.02,
-      c: COLORS[Math.floor(Math.random()*COLORS.length)] }; }
-    (function loop(){
-      cx.clearRect(0,0,innerWidth,innerHeight);
-      P.forEach(function(p,i){
-        p.y += p.vy; p.ph += .008; p.rot += p.vr;
-        var x = p.x + Math.sin(p.ph)*p.sway;
-        if (p.y > innerHeight + 24) P[i] = spawn(false);
-        cx.save(); cx.translate(x, p.y); cx.rotate(p.rot);
-        cx.fillStyle = p.c; cx.beginPath();
-        cx.ellipse(0, 0, p.r, p.r*.55, 0, 0, 6.29); cx.fill(); cx.restore();
-      });
-      requestAnimationFrame(loop);
-    })();
-  }
 
   /* ── birds ── */
   function startBirds(){
