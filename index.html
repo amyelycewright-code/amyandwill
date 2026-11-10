@@ -230,6 +230,7 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
 .closing .made{font-size:12px;color:#A79F8D;margin-top:44px;font-style:italic}
 
 /* ============ ambient layers ============ */
+#petals{position:fixed;inset:0;pointer-events:none;z-index:40}
 #birds{position:fixed;inset:0;pointer-events:none;z-index:41;overflow:hidden}
 .bird{position:absolute;width:30px;color:rgba(46,43,38,.5);top:20%;left:-6%;}
 .bird svg{width:100%;animation:flap .5s ease-in-out infinite alternate}
@@ -289,13 +290,10 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
           </defs>
           <g transform="rotate(-6 48 48)">
             <path d="M48 5 C56 2 66 5 73 11 C81 17 88 26 86 36 C91 44 90 55 84 63 C80 72 71 79 62 82 C54 87 43 88 34 84 C25 81 15 74 11 65 C5 57 5 46 9 38 C6 28 12 17 21 11 C29 4 40 7 48 5 Z" fill="url(#waxg)"/>
-            <path d="M48 5 C56 2 66 5 73 11 C81 17 88 26 86 36 C91 44 90 55 84 63 C80 72 71 79 62 82 C54 87 43 88 34 84 C25 81 15 74 11 65 C5 57 5 46 9 38 C6 28 12 17 21 11 C29 4 40 7 48 5 Z" fill="url(#sheen)"/>
             <path d="M48 5 C56 2 66 5 73 11 C81 17 88 26 86 36 C91 44 90 55 84 63 C80 72 71 79 62 82 C54 87 43 88 34 84 C25 81 15 74 11 65 C5 57 5 46 9 38 C6 28 12 17 21 11 C29 4 40 7 48 5 Z" fill="none" stroke="#6E5126" stroke-opacity=".5" stroke-width="1.4"/>
             <circle cx="48" cy="46" r="27.5" fill="url(#waxin)"/>
             <circle cx="48" cy="47.6" r="27.5" fill="none" stroke="#FFF1C6" stroke-opacity=".55" stroke-width="1"/>
             <circle cx="48" cy="46" r="27.5" fill="none" stroke="#7A5A2C" stroke-opacity=".65" stroke-width="1.2"/>
-            <ellipse cx="28" cy="17" rx="14" ry="6.5" fill="#FFFBE8" opacity=".6" filter="url(#waxblur)" transform="rotate(-26 28 17)"/>
-            <ellipse cx="73" cy="73" rx="8" ry="3.6" fill="#FFF3D0" opacity=".26" filter="url(#waxblur)" transform="rotate(-18 73 73)"/>
             <text x="48" y="53.6" text-anchor="middle" style="font-family:var(--serif)" font-weight="600" letter-spacing="1.5" font-size="18" fill="#FFEFC0" opacity=".5">A&amp;W</text>
             <text x="48" y="52" text-anchor="middle" style="font-family:var(--serif)" font-weight="600" letter-spacing="1.5" font-size="18" fill="#5A4118">A&amp;W</text>
           </g>
@@ -476,6 +474,7 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
 </div>
 
 <!-- ambient layers -->
+<canvas id="petals"></canvas>
 <div id="birds"></div>
 
 <!-- shared svg defs -->
@@ -574,11 +573,37 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
     setTimeout(function(){
       layer.classList.add("reveal");
       document.body.classList.remove("locked");
-      startBirds();
+      startPetals(); startBirds();
     }, 1900);
     setTimeout(function(){ layer.style.display = "none"; }, 3000);
   });
 
+  /* ── petals ── */
+  function startPetals(){
+    if (reduced) return;
+    var cv = document.getElementById("petals"), cx = cv.getContext("2d");
+    var P = [], COLORS = ["rgba(206,141,108,.38)","rgba(205,180,131,.36)","rgba(133,134,88,.3)"];
+    function size(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    size(); addEventListener("resize", size);
+    for (var i = 0; i < 13; i++) P.push(spawn(true));
+    function spawn(any){ return {
+      x: Math.random()*innerWidth, y: any ? Math.random()*innerHeight : -20,
+      r: 4 + Math.random()*5, vy: .35 + Math.random()*.6, ph: Math.random()*6.28,
+      sway: 18 + Math.random()*26, rot: Math.random()*6.28, vr: (Math.random()-.5)*.02,
+      c: COLORS[Math.floor(Math.random()*COLORS.length)] }; }
+    (function loop(){
+      cx.clearRect(0,0,innerWidth,innerHeight);
+      P.forEach(function(p,i){
+        p.y += p.vy; p.ph += .008; p.rot += p.vr;
+        var x = p.x + Math.sin(p.ph)*p.sway;
+        if (p.y > innerHeight + 24) P[i] = spawn(false);
+        cx.save(); cx.translate(x, p.y); cx.rotate(p.rot);
+        cx.fillStyle = p.c; cx.beginPath();
+        cx.ellipse(0, 0, p.r, p.r*.55, 0, 0, 6.29); cx.fill(); cx.restore();
+      });
+      requestAnimationFrame(loop);
+    })();
+  }
 
   /* ── birds ── */
   function startBirds(){
