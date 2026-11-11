@@ -528,21 +528,6 @@ h2.script{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing
   document.body.classList.add("locked");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* live-config channel: lets us restyle or re-word without waiting on page caches */
-  try {
-    var iconLink = document.querySelector('link[rel="icon"]');
-    var assetBase = iconLink && (iconLink.getAttribute("href") || "").match(/^(.*\/assets\/)/);
-    if (assetBase) {
-      fetch(assetBase[1] + "aw-live.json?t=" + Date.now(), {cache: "no-store"})
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(cfg){
-          if (!cfg) return;
-          if (cfg.css) { var st = document.createElement("style"); st.textContent = cfg.css; document.head.appendChild(st); }
-          (cfg.text || []).forEach(function(p){ var el = document.querySelector(p[0]); if (el) el.innerHTML = p[1]; });
-        }).catch(function(){});
-    }
-  } catch (e) {}
-
   /* ── reveal on scroll ── */
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
